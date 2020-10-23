@@ -12,6 +12,7 @@ public class sya_TCPServerMT
     private static ServerSocket servSock;
     public static File chatLog;
     public static FileWriter log;
+    public static ArrayList<ClientHandler> arr = new ArrayList<ClientHandler>();
     public static void main(String[] args)
     {
         System.out.println("Opening port...\n");
@@ -36,8 +37,8 @@ public class sya_TCPServerMT
             // Put the server into a waiting state
             link = servSock.accept();
 
-            //create file
-            //if(arr.size()==1)
+            //create file if no other sockets (which means no file)
+            if(arr.isEmpty())
             {
                 chatLog = new File("sy_chat.txt");
                 chatLog.createNewFile();
@@ -56,6 +57,7 @@ public class sya_TCPServerMT
 
             // Create a thread to handle this connection
             ClientHandler handler = new ClientHandler(link, user);
+            arr.add(handler);
 
             // start serving this connection
             handler.start(); 
@@ -70,19 +72,24 @@ class ClientHandler extends Thread
     private String user;
     private BufferedReader in;
     private PrintWriter out;
+    private int index=0, count;
     private static long start, finish;
     public ClientHandler(Socket s, String name)
     {
         // set up the socket
         client = s;
         user=name;
+        this.index=count;
+        count++;
+                System.out.println(user+" index "+index);
+                System.out.println("Count "+count);
         //start the timer
         start = System.nanoTime();
         try
         {
             // Set up input and output streams for socket
-            in = new BufferedReader(new InputStreamReader(client.getInputStream())); 
-            out = new PrintWriter(client.getOutputStream(),true); 
+            this.in = new BufferedReader(new InputStreamReader(client.getInputStream())); 
+            this.out = new PrintWriter(client.getOutputStream(),true); 
         }
         catch(IOException e){ e.printStackTrace(); }
     }
@@ -94,7 +101,7 @@ class ClientHandler extends Thread
         int numMessages = 0;
         try
         {
-            String message = in.readLine(); 
+            String message = this.in.readLine(); 
             //create filewriter
             sya_TCPServerMT.log = new FileWriter("sy_chat.txt");
 
@@ -104,26 +111,25 @@ class ClientHandler extends Thread
                 sya_TCPServerMT.log.write(user + ": "+ message+"\n");
                 sya_TCPServerMT.log.flush();
                 numMessages ++;
+                //cycle and broad cast to !this.out
                 //out.println(user + ": "+ message+"\n");   //broadcasting back
                 //out.flush();
-                message = in.readLine();
+                message = this.in.readLine();
             }
-            sya_TCPServerMT.log.close();
 
             // Send a report back and close the connection
-            out.println("--Information Received From the Server==");
-            out.flush();
+            this.out.println("--Information Received From the Server==");
+            this.out.flush();
             Scanner file = new Scanner(sya_TCPServerMT.chatLog);
-                System.out.println();
             while(file.hasNextLine())
             {
                 message = file.nextLine();
-                out.println(message);
-                out.flush();
-                System.out.println(message);
+                this.out.println(message);
+                this.out.flush();
+                //System.out.println(message);
             }
-            out.println("Server received " + numMessages + " messages");
-            out.flush();
+            this.out.println("Server received " + numMessages + " messages");
+            this.out.flush();
  
             //get the end value of timer
             finish = System.nanoTime();
@@ -135,16 +141,22 @@ class ClientHandler extends Thread
                 seconds=Math.floor(val/(1*Math.pow(10, 9)));
                 val=val%(1*Math.pow(10, 9));
                 milliseconds=Math.floor(val/(1*Math.pow(10, 6)));
-            out.println("Length of session: "+(int)hours+"::"+(int)minutes+"::"+(int)seconds+"::"+(int)milliseconds);
-            out.flush();
-            out.close();
+            this.out.println("Length of session: "+(int)hours+"::"+(int)minutes+"::"+(int)seconds+"::"+(int)milliseconds);
+            this.out.flush();
             
-            //if(arr.size==0)
+            
+            sya_TCPServerMT.arr.remove(this.index);
+            count--;
+                System.out.println("Server is empty "+sya_TCPServerMT.arr.isEmpty());
+                System.out.println("Count "+count);
+            if(sya_TCPServerMT.arr.isEmpty())
             {
+                System.out.println("Server is empty, clearing logs...");
+                out.close();
                 file.close();
                 sya_TCPServerMT.chatLog.delete();
             }
-            //else{ other nodes see
+            //else{ //other nodes see
             //out.println(this.user+" has left the chat.");}
         }
         catch(IOException e){ e.printStackTrace(); }
@@ -152,8 +164,13 @@ class ClientHandler extends Thread
         {
             try
             {
-                System.out.println("!!!!! Closing connection... !!!!!" );
-                client.close(); 
+                System.out.println(this.user+" has left the chat.");
+                    System.out.println();
+                sya_TCPServerMT.log.write(this.user+" has left the chat.\n");
+                sya_TCPServerMT.log.flush();
+                if(sya_TCPServerMT.arr.isEmpty())
+                    sya_TCPServerMT.log.close();
+                this.client.close(); 
             }
             catch(IOException e)
             {
