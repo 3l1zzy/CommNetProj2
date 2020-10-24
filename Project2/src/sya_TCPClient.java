@@ -195,7 +195,8 @@ class ServConsole extends Thread
                 if (response!=null)
                 {
                     //sleep(100);
-                    System.out.println(response);
+                    System.out.println("\r"+response+" "+" "+" "+" "+" "+" "+" "+" "+" "+" "+" "+" "+" ");
+                    System.out.print("Enter message: ");
                 }
             }
             catch(Exception e){System.out.println(e);}

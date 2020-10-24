@@ -1,0 +1,11 @@
+alsoSyaw: hi
+syaw: hi
+syaw: 1
+syaw:  
+alsoSyaw: oh cool
+syaw: okay
+syaw: alright
+alsoSyaw: not bad
+syaw: sweet
+alsoSyaw has left the chat.
+syaw has left the chat.

@@ -158,7 +158,7 @@ class ClientHandler extends Thread
 
             sya_TCPServerMT.arr.remove(this.index);//the oldest would have to leave first; fix to it looks by user or something
             sya_TCPServerMT.count--;
-                System.out.println("Server is empty "+sya_TCPServerMT.arr.isEmpty());
+                //System.out.println("Server is empty "+sya_TCPServerMT.arr.isEmpty());
             if(sya_TCPServerMT.arr.isEmpty())
             {
                 System.out.println("Server is empty, clearing logs...");
