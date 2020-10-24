@@ -13,6 +13,7 @@ public class sya_TCPServerMT
     public static File chatLog;
     public static FileWriter log;
     public static ArrayList<ClientHandler> arr = new ArrayList<ClientHandler>();
+    public static int count;
     public static void main(String[] args)
     {
         System.out.println("Opening port...\n");
@@ -48,6 +49,9 @@ public class sya_TCPServerMT
             BufferedReader in = new BufferedReader(new InputStreamReader(link.getInputStream()));
             PrintWriter out = new PrintWriter(link.getOutputStream(),true);
 
+            //create filewriter
+            sya_TCPServerMT.log = new FileWriter("sy_chat.txt");
+
             // print local host name
             String host = InetAddress.getLocalHost().getHostName();     
        
@@ -72,17 +76,16 @@ class ClientHandler extends Thread
     private String user;
     private BufferedReader in;
     private PrintWriter out;
-    private int index=0, count;
+    private int index;
     private static long start, finish;
     public ClientHandler(Socket s, String name)
     {
         // set up the socket
         client = s;
         user=name;
-        this.index=count;
-        count++;
+        this.index=sya_TCPServerMT.count;
+        sya_TCPServerMT.count++;
                 System.out.println(user+" index "+index);
-                System.out.println("Count "+count);
         //start the timer
         start = System.nanoTime();
         try
@@ -102,8 +105,6 @@ class ClientHandler extends Thread
         try
         {
             String message = this.in.readLine(); 
-            //create filewriter
-            sya_TCPServerMT.log = new FileWriter("sy_chat.txt");
 
             while (!message.equals("DONE"))
             {
@@ -111,9 +112,19 @@ class ClientHandler extends Thread
                 sya_TCPServerMT.log.write(user + ": "+ message+"\n");
                 sya_TCPServerMT.log.flush();
                 numMessages ++;
-                //cycle and broad cast to !this.out
-                //out.println(user + ": "+ message+"\n");   //broadcasting back
-                //out.flush();
+                //cycle and broadcast to !this.out
+                for(int i=0; i<sya_TCPServerMT.arr.size();i++)
+                {
+                    //System.out.println("ln 118");
+                    ClientHandler temp = sya_TCPServerMT.arr.get(i);
+                    if(temp.index!=this.index)
+                    {
+                    System.out.println(temp.user+" did not initiate this");
+                        temp.out.print(user + ": "+ message+"\n");   //broadcasting back
+                        temp.out.flush();
+                    }
+                    //System.out.println("ln 126");
+                }
                 message = this.in.readLine();
             }
 
@@ -144,11 +155,10 @@ class ClientHandler extends Thread
             this.out.println("Length of session: "+(int)hours+"::"+(int)minutes+"::"+(int)seconds+"::"+(int)milliseconds);
             this.out.flush();
             
-            
-            sya_TCPServerMT.arr.remove(this.index);
-            count--;
+
+            sya_TCPServerMT.arr.remove(this.index);//the oldest would have to leave first; fix to it looks by user or something
+            sya_TCPServerMT.count--;
                 System.out.println("Server is empty "+sya_TCPServerMT.arr.isEmpty());
-                System.out.println("Count "+count);
             if(sya_TCPServerMT.arr.isEmpty())
             {
                 System.out.println("Server is empty, clearing logs...");

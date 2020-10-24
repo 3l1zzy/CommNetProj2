@@ -129,14 +129,20 @@ public class sya_TCPClient
             BufferedReader userEntry = new BufferedReader(new InputStreamReader(System.in));
             String message, response;
 
-            // Get data from the user and send it to the server
+            //communication to and from server
             do
             {
+                // Get data from the user and send it to the server
                 System.out.print("Enter message: ");
                 message = userEntry.readLine();
-                out.println(message);
-            }while (!message.equals("DONE"));
-
+                out.println(message);                
+                
+                // Receive data from the server
+            	response = in.readLine();
+            	if (response!=null)
+                    System.out.println(response);
+            }while(!message.equals("DONE"));
+            
             // Receive the final report and close the connection
             message = in.readLine();
             response = message;
