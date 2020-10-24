@@ -10,6 +10,7 @@ public class sya_TCPClient
 {
     private static InetAddress host;
     private static String input="";
+    public static boolean closing=false;
     public static void main(String[] args)
     {
         int port = 0;
@@ -47,12 +48,10 @@ public class sya_TCPClient
                 // Get server IP-address
                 if(hasHost)
                 {
-                    //System.out.println("-h found");
                     host = InetAddress.getByName(args[hostIndex]);
                 }
                 else
                 {
-                    //System.out.println("default host");
                     host = InetAddress.getLocalHost();
                 }
                 
@@ -60,19 +59,16 @@ public class sya_TCPClient
                 //Get Port
                 if(hasPort)
                 {
-                    //System.out.println("-p found");
                     port = Integer.parseInt(args[portIndex]);
                 }
                 else
                 {
-                    //System.out.println("default port");
                     port = 20700;
                 }
                 
                 // Get username
                 if(hasUser)
                 {
-                    //System.out.println("-u found");
                     user = args[userIndex];
                 }
                 else
@@ -83,7 +79,6 @@ public class sya_TCPClient
             }
             else if (args.length==0) //if the command line is left empty of arguments aside from running the client
             {
-                //System.out.println("Empty command line");
                 //host
                 host = InetAddress.getLocalHost();
                 //port
@@ -92,21 +87,16 @@ public class sya_TCPClient
                 System.out.print("Please enter a username: ");
                 user = keyb.next();
             }
-            //System.out.println("--------");
-            //System.out.println("Host: "+host);
-            //System.out.println("User: "+user);
-            //System.out.println("Port: "+port);
-            //System.out.println("--------");
         }
         catch(UnknownHostException e)
         {
             System.out.println("Host ID not found!");
             System.exit(1);
         }
-        run(port, user); //port
+        runn(port, user); //port
     }
 
-    private static void run(int port, String user)
+    private static void runn(int port, String user)
     {
         Socket link = null;
         try
@@ -130,19 +120,24 @@ public class sya_TCPClient
             String message, response;
 
             //communication to and from server
-            do
-            {
-                // Get data from the user and send it to the server
-                System.out.print("Enter message: ");
-                message = userEntry.readLine();
-                out.println(message);                
-                
-                // Receive data from the server
-            	response = in.readLine();
-            	if (response!=null)
-                    System.out.println(response);
-            }while(!message.equals("DONE"));
+            Thread scComm=new Thread(new ServConsole(in));
+            Thread usComm=new Thread(new UserServer(out, userEntry));
+            //starts
+            scComm.start();
+            usComm.start();
+
             
+
+            //joins - only receives at this point and only gets server exit report
+            try
+            {
+                scComm.join();
+                usComm.join();
+            }
+            catch(Exception e)
+            {
+                System.out.println(e);
+            }
             // Receive the final report and close the connection
             message = in.readLine();
             response = message;
@@ -157,8 +152,6 @@ public class sya_TCPClient
                     System.out.println(response);
                 }
             }while(message!=null && !message.substring(0,3).equals("Serve"));
-            //response = in.readLine();
-            //System.out.println(response);
         }
         catch(IOException e)
         {
@@ -179,5 +172,61 @@ public class sya_TCPClient
                System.exit(1);
            }
         }
+    }
+}
+class ServConsole extends Thread
+{
+    private BufferedReader fromServ;
+    //console output is system.out
+    private String response;
+    public ServConsole(BufferedReader sbr)
+    {
+        fromServ=sbr;
+    }
+    @Override
+    public void run()
+    {
+        // Receive data from the server
+        while(!sya_TCPClient.closing)
+        {
+            try
+            {
+                response = fromServ.readLine();
+                if (response!=null)
+                {
+                    //sleep(100);
+                    System.out.println(response);
+                }
+            }
+            catch(Exception e){System.out.println(e);}
+        }
+        
+    }
+}
+class UserServer extends Thread
+{
+    private BufferedReader fromUser;
+    private PrintWriter toServ;
+    private String message;
+    UserServer(PrintWriter pw, BufferedReader cbr)
+    {
+        fromUser=cbr;
+        toServ=pw;
+    }
+    @Override
+    public void run()
+    {
+        // Get data from the user and send it to the server
+        do
+        {
+            try
+            {
+                System.out.print("Enter message: ");
+                message = fromUser.readLine();
+                toServ.println(message);
+            }
+            catch(Exception e){System.out.println(e);}
+        }while (!message.equals("DONE"));
+        sya_TCPClient.closing=true;
     }
 }

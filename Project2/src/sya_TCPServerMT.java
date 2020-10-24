@@ -85,7 +85,7 @@ class ClientHandler extends Thread
         user=name;
         this.index=sya_TCPServerMT.count;
         sya_TCPServerMT.count++;
-                System.out.println(user+" index "+index);
+                //System.out.println(user+" index "+index);
         //start the timer
         start = System.nanoTime();
         try
@@ -119,7 +119,7 @@ class ClientHandler extends Thread
                     ClientHandler temp = sya_TCPServerMT.arr.get(i);
                     if(temp.index!=this.index)
                     {
-                    System.out.println(temp.user+" did not initiate this");
+                    //System.out.println(temp.user+" did not initiate this");
                         temp.out.print(user + ": "+ message+"\n");   //broadcasting back
                         temp.out.flush();
                     }

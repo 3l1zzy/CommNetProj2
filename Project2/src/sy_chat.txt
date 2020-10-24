@@ -1,7 +1,0 @@
-alsoSyaw: hello
-syaw: HI
-alsoSyaw: HI
-syaw: oh wow
-alsoSyaw: oh my god
-syaw has left the chat.
-alsoSyaw has left the chat.
