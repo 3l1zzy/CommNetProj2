@@ -22,6 +22,7 @@ public class sya_TCPClient
         {
             if(args.length>0)
             {
+                //check to see what command is input by user
                 for(int i=0; i<args.length;i++)
                 {
                     if(args[i]==null)
@@ -43,6 +44,12 @@ public class sya_TCPClient
                         hasUser=true;
                         userIndex = i+1;
                     }
+                    //if there is an invalid command
+                    if(!args[i].equals("-u")&&!args[i].equals("-p")&&!args[i].equals("-h")&&args[i].charAt(0)=='-')
+                    {
+                        System.out.println("Invalid command "+args[i]);
+                        System.exit(0);
+                    }
                 }
                     
                 // Get server IP-address
@@ -52,7 +59,9 @@ public class sya_TCPClient
                 }
                 else
                 {
-                    host = InetAddress.getLocalHost();
+                    //host = InetAddress.getLocalHost();
+                    System.out.println("Please enter a host");
+                    System.exit(0);
                 }
                 
                 
@@ -63,7 +72,9 @@ public class sya_TCPClient
                 }
                 else
                 {
-                    port = 20700;
+                    //port = 20700;
+                    System.out.println("Please enter a port");
+                    System.exit(0);
                 }
                 
                 // Get username
@@ -79,13 +90,15 @@ public class sya_TCPClient
             }
             else if (args.length==0) //if the command line is left empty of arguments aside from running the client
             {
+                System.out.println("Please enter the host, port, and username");
+                System.exit(0);
                 //host
-                host = InetAddress.getLocalHost();
+                //host = InetAddress.getLocalHost();
                 //port
-                port = 20700;
+                //port = 20700;
                 //username
-                System.out.print("Please enter a username: ");
-                user = keyb.next();
+                //System.out.print("Please enter a username: ");
+                //user = keyb.next();
             }
         }
         catch(UnknownHostException e)
@@ -93,7 +106,7 @@ public class sya_TCPClient
             System.out.println("Host ID not found!");
             System.exit(1);
         }
-        runn(port, user); //port
+        runn(port, user);
     }
 
     private static void runn(int port, String user)
@@ -122,6 +135,7 @@ public class sya_TCPClient
             //communication to and from server
             Thread scComm=new Thread(new ServConsole(in));
             Thread usComm=new Thread(new UserServer(out, userEntry));
+
             //starts
             scComm.start();
             usComm.start();
@@ -136,6 +150,7 @@ public class sya_TCPClient
             {
                 System.out.println(e);
             }
+
             // Receive the final report and close the connection
             message = in.readLine();
             response = message;
@@ -155,9 +170,9 @@ public class sya_TCPClient
         {
             e.printStackTrace();
         }
-
         finally
         {
+            //actually close the connection
             try
             {
                 System.out.println("\n!!!!! Closing connection... !!!!!");

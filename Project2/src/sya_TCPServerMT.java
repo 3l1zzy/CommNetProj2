@@ -9,6 +9,7 @@ import java.util.*;
 
 public class sya_TCPServerMT
 {
+    //initializing the server
     private static ServerSocket servSock;
     public static File chatLog;
     public static FileWriter log;
@@ -18,6 +19,7 @@ public class sya_TCPServerMT
     public static int numMessages = 0;
     public static void main(String[] args)
     {
+        //opening port, setting up object, and running forever
         System.out.println("Opening port...\n");
         try
         {
@@ -34,18 +36,18 @@ public class sya_TCPServerMT
 
     private static void run()
     {
+        //server operation method
         Socket link = null; 
         try
         {
             // Put the server into a waiting state
             link = servSock.accept();
 
-            //create file if no other sockets (which means no file)
+            //create file and filewriter if no other sockets (which means no file)
             if(arr.isEmpty())
             {
                 chatLog = new File("sy_chat.txt");
                 chatLog.createNewFile();
-                //create filewriter
                 sya_TCPServerMT.log = new FileWriter("sy_chat.txt");
             }
 
@@ -107,7 +109,7 @@ class ClientHandler extends Thread
         //new join bookkeeping
         try
         {
-            //output backlog of chat
+            //output backlog of chat to new joins
             backlog = new Scanner(sya_TCPServerMT.chatLog);
             String log;
             while(backlog.hasNextLine())
@@ -117,16 +119,17 @@ class ClientHandler extends Thread
                 this.out.flush();
             }   
             
-            //join announcement
+            //join announcement to others
             for(int i=0; i<sya_TCPServerMT.arr.size();i++)
             {
                 ClientHandler temp = sya_TCPServerMT.arr.get(i);
                 if(temp.index!=this.index)
                 {
-                    temp.out.println(user + " has joined the chat!");   //broadcasting back
+                    temp.out.println(user + " has joined the chat!");
                     temp.out.flush();
                 }
             }
+            //join announcement in chatlog
             sya_TCPServerMT.log.write(user + " has joined the chat!\n");
             sya_TCPServerMT.log.flush();
 
@@ -141,14 +144,14 @@ class ClientHandler extends Thread
             {
                 while(!sya_TCPServerMT.canUpdate)
                 {
-                    //see if canUpdate
+                    //synchronization to prevent collisions between two clients posting at once
                     synchronized(this.lock)
                     {
                         try
                         {   
                             this.lock.wait();
                         }
-                        catch(Exception e){System.out.println(e);}//+" @122");}
+                        catch(Exception e){System.out.println(e);}
                     }   
                 }
                 sya_TCPServerMT.canUpdate=false;   
@@ -156,11 +159,11 @@ class ClientHandler extends Thread
                 sya_TCPServerMT.log.write(user + ": "+ message+"\n");
                 sya_TCPServerMT.log.flush();
                 sya_TCPServerMT.numMessages ++;
-                //end of synch
+                //end of synchronization
                 sya_TCPServerMT.canUpdate=true;
                 synchronized(this.lock){this.lock.notifyAll();}
 
-                //cycle and broadcast to !this.out
+                //cycle and broadcast input to !this.out
                 for(int i=0; i<sya_TCPServerMT.arr.size();i++)
                 {
                     ClientHandler temp = sya_TCPServerMT.arr.get(i);
@@ -171,11 +174,11 @@ class ClientHandler extends Thread
                     }
                 }
                 message = this.in.readLine();
-                
             }
+            //client has said they're done
 
             // Send a report back and close the connection
-            this.out.println("--Information Received From the Server==");
+            this.out.println("--Information Received From the Server--");
             this.out.flush();
             Scanner file = new Scanner(sya_TCPServerMT.chatLog);
             while(file.hasNextLine())
@@ -200,25 +203,26 @@ class ClientHandler extends Thread
             this.out.println("Length of session: "+(int)hours+"::"+(int)minutes+"::"+(int)seconds+"::"+(int)milliseconds);
             this.out.flush();
 
-            //departure announcement
+            //departure announcement to remaining clients
             for(int i=0; i<sya_TCPServerMT.arr.size();i++)
             {
                 ClientHandler temp = sya_TCPServerMT.arr.get(i);
                 if(temp.index!=this.index)
                 {
-                    temp.out.println(user + " has left the chat.");   //broadcasting back
+                    temp.out.println(user + " has left the chat.");
                     temp.out.flush();
                 }
             }
             System.out.println(this.user+" has left the chat.");
 
-            //actual departure
+            //actual departure from server and arrayList
             sya_TCPServerMT.arr.remove(sya_TCPServerMT.arr.indexOf(this));
             sya_TCPServerMT.count--;
 
             if(sya_TCPServerMT.arr.isEmpty())
             {
-                System.out.println("Server is empty, clearing logs..."); //debugging statement but I like it there
+                System.out.println("Server is empty, clearing logs...");    
+                //debugging statement but I like it there^
                 out.close();
                 file.close();
                 sya_TCPServerMT.chatLog.delete();
@@ -231,8 +235,9 @@ class ClientHandler extends Thread
             try
             {
                 sya_TCPServerMT.log.write(this.user+" has left the chat.\n");
+                //departure notification placed in chatlog
                 sya_TCPServerMT.log.flush();
-                if(sya_TCPServerMT.arr.isEmpty())
+                if(sya_TCPServerMT.arr.isEmpty()) //if server is empty then delete the chatlog
                     sya_TCPServerMT.log.close();
                 this.client.close(); 
             }
