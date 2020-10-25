@@ -212,8 +212,10 @@ class ClientHandler extends Thread
             }
             System.out.println(this.user+" has left the chat.");
 
-            sya_TCPServerMT.arr.remove(this.index);//the oldest would have to leave first; fix to it looks by user or something
+            //actual departure
+            sya_TCPServerMT.arr.remove(sya_TCPServerMT.arr.indexOf(this));
             sya_TCPServerMT.count--;
+
             if(sya_TCPServerMT.arr.isEmpty())
             {
                 System.out.println("Server is empty, clearing logs..."); //debugging statement but I like it there
