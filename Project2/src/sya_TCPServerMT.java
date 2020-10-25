@@ -15,6 +15,7 @@ public class sya_TCPServerMT
     public static ArrayList<ClientHandler> arr = new ArrayList<ClientHandler>();
     public static boolean canUpdate=true;
     public static int count;
+    public static int numMessages = 0;
     public static void main(String[] args)
     {
         System.out.println("Opening port...\n");
@@ -133,7 +134,6 @@ class ClientHandler extends Thread
         catch(Exception e){System.out.println(e);}
 
         // Receive and process the incoming data 
-        int numMessages = 0;
         try
         {
             String message = this.in.readLine(); 
@@ -155,7 +155,7 @@ class ClientHandler extends Thread
                 System.out.println(user + ": "+ message);
                 sya_TCPServerMT.log.write(user + ": "+ message+"\n");
                 sya_TCPServerMT.log.flush();
-                numMessages ++;
+                sya_TCPServerMT.numMessages ++;
                 //end of synch
                 sya_TCPServerMT.canUpdate=true;
                 synchronized(this.lock){this.lock.notifyAll();}
@@ -184,7 +184,7 @@ class ClientHandler extends Thread
                 this.out.println(message);
                 this.out.flush();
             }
-            this.out.println("Server received " + numMessages + " messages");
+            this.out.println("Server received " + sya_TCPServerMT.numMessages + " messages total");
             this.out.flush();
  
             //get the end value of timer
