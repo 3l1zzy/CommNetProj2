@@ -126,8 +126,6 @@ public class sya_TCPClient
             scComm.start();
             usComm.start();
 
-            
-
             //joins - only receives at this point and only gets server exit report
             try
             {
@@ -141,7 +139,7 @@ public class sya_TCPClient
             // Receive the final report and close the connection
             message = in.readLine();
             response = message;
-            System.out.println(response);
+            System.out.println("\r"+response+" "+" "+" "+" "+" "+" "+" "+" "+" "+" "+" "+" "+" ");
             do
             {
                 message = in.readLine();
@@ -194,7 +192,6 @@ class ServConsole extends Thread
                 response = fromServ.readLine();
                 if (response!=null)
                 {
-                    //sleep(100);
                     System.out.println("\r"+response+" "+" "+" "+" "+" "+" "+" "+" "+" "+" "+" "+" "+" ");
                     System.out.print("Enter message: ");
                 }
