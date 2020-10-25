@@ -6,7 +6,7 @@
 import java.io.*;
 import java.net.*;
 import java.util.*;
-public class sya_TCPClient
+public class sye_TCPClient
 {
     private static InetAddress host;
     private static String input="";
@@ -49,7 +49,7 @@ public class sya_TCPClient
                     {
                         System.out.println("Invalid command "+args[i]);
                         System.exit(0);
-                    }
+                    } 
                 }
                     
                 // Get server IP-address
@@ -200,7 +200,7 @@ class ServConsole extends Thread
     public void run()
     {
         // Receive data from the server
-        while(!sya_TCPClient.closing)
+        while(!sye_TCPClient.closing)
         {
             try
             {
@@ -240,6 +240,6 @@ class UserServer extends Thread
             }
             catch(Exception e){System.out.println(e);}
         }while (!message.equals("DONE"));
-        sya_TCPClient.closing=true;
+        sye_TCPClient.closing=true;
     }
 }
